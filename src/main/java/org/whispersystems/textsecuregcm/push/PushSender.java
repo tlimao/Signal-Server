@@ -114,7 +114,9 @@ public class PushSender implements Managed {
     DeliveryStatus deliveryStatus = webSocketSender.sendMessage(account, device, outgoingMessage, WebsocketSender.Type.APN);
 
     if (!deliveryStatus.isDelivered() && outgoingMessage.getType() != Envelope.Type.RECEIPT) {
-      sendApnNotification(account, device, false);
+      if (apnSender != null && apnFallbackManager != null ){
+        sendApnNotification(account, device, false);
+      }
     }
   }
 
@@ -142,7 +144,9 @@ public class PushSender implements Managed {
 
   @Override
   public void start() throws Exception {
-    apnSender.start();
+    if (apnSender != null){
+      apnSender.start();
+    }
     gcmSender.start();
   }
 
@@ -151,7 +155,9 @@ public class PushSender implements Managed {
     executor.shutdown();
     executor.awaitTermination(5, TimeUnit.MINUTES);
 
-    apnSender.stop();
+    if (apnSender != null){
+      apnSender.stop();
+    }
     gcmSender.stop();
   }
 

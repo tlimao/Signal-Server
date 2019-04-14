@@ -60,6 +60,7 @@ database: # Postgresql database configuration
   url:
 
 apn: # Apple Push Notifications configuration
+  enable: # true: APN Enable / false: APN Disable
   bundleId:
   pushCertificate:
   pushKey:

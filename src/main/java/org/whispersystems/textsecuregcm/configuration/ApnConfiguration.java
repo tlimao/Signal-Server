@@ -18,19 +18,24 @@ package org.whispersystems.textsecuregcm.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 
 public class ApnConfiguration {
 
-  @NotEmpty
+  @NotNull
+  @JsonProperty
+  private boolean enable;
+
+  //@NotEmpty
   @JsonProperty
   private String pushCertificate;
 
-  @NotEmpty
+  //@NotEmpty
   @JsonProperty
   private String pushKey;
 
-  @NotEmpty
+  //@NotEmpty
   @JsonProperty
   private String bundleId;
 
@@ -51,5 +56,9 @@ public class ApnConfiguration {
 
   public boolean isSandboxEnabled() {
     return sandbox;
+  }
+
+  public boolean isEnable() {
+    return enable;
   }
 }
