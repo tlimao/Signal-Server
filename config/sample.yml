@@ -1,4 +1,5 @@
 twilio: # Twilio gateway configuration
+  enable: # true: Twilio Enable / false: Twilio Disable
   accountId: 
   accountToken: 
   numbers: # Numbers allocated in Twilio

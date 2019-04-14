@@ -46,7 +46,7 @@ import io.dropwizard.db.DataSourceFactory;
 
 public class WhisperServerConfiguration extends Configuration {
 
-  @NotNull
+  //@NotNull
   @Valid
   @JsonProperty
   private TwilioConfiguration twilio;
