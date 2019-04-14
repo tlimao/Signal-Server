@@ -4,7 +4,7 @@ email: # Email configuration
   smttpPass:
   smtpHost:
   smtpPort:
-  email:
+  email: # Contact email e.g.: contact@yourdomain.com
   allDomainsAllowed: # true: allow any domain / false: allow specific domains
   allowedDomains:
     - # First domain
