@@ -24,6 +24,7 @@ import org.whispersystems.textsecuregcm.storage.MessagesManager;
 import org.whispersystems.textsecuregcm.storage.PendingAccountsManager;
 import org.whispersystems.textsecuregcm.tests.util.AuthHelper;
 import org.whispersystems.textsecuregcm.util.SystemMapper;
+import org.whispersystems.textsecuregcm.email.EmailSender;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
@@ -49,6 +50,7 @@ public class AccountControllerTest {
   private        RateLimiter            rateLimiter            = mock(RateLimiter.class           );
   private        RateLimiter            pinLimiter             = mock(RateLimiter.class           );
   private        SmsSender              smsSender              = mock(SmsSender.class             );
+  private        EmailSender            emailSender            = mock(EmailSender.class           );
   private        MessagesManager        storedMessages         = mock(MessagesManager.class       );
   private        TimeProvider           timeProvider           = mock(TimeProvider.class          );
   private        TurnTokenGenerator     turnTokenGenerator     = mock(TurnTokenGenerator.class);
@@ -65,6 +67,7 @@ public class AccountControllerTest {
                                                                                                accountsManager,
                                                                                                rateLimiters,
                                                                                                smsSender,
+                                                                                               emailSender,
                                                                                                storedMessages,
                                                                                                turnTokenGenerator,
                                                                                                new HashMap<>()))

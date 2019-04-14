@@ -1,3 +1,17 @@
+email: # Email configuration
+  enable: # true: Email Verification Enable / false: Email Verification Disable
+  smttpUser:
+  smttpPass:
+  smtpHost:
+  smtpPort:
+  email:
+  allDomainsAllowed: # true: allow any domain / false: allow specific domains
+  allowedDomains:
+    - # First domain
+    - # Second domain
+    - # ...
+    - # Nth domain
+
 twilio: # Twilio gateway configuration
   enable: # true: Twilio Enable / false: Twilio Disable
   accountId: 
