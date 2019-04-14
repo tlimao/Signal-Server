@@ -36,6 +36,7 @@ import org.whispersystems.textsecuregcm.entities.GcmRegistrationId;
 import org.whispersystems.textsecuregcm.entities.RegistrationLock;
 import org.whispersystems.textsecuregcm.entities.RegistrationLockFailure;
 import org.whispersystems.textsecuregcm.limits.RateLimiters;
+import org.whispersystems.textsecuregcm.email.EmailSender;
 import org.whispersystems.textsecuregcm.sms.SmsSender;
 import org.whispersystems.textsecuregcm.sms.TwilioSmsSender;
 import org.whispersystems.textsecuregcm.storage.Account;
@@ -81,6 +82,7 @@ public class AccountController {
   private final AccountsManager                       accounts;
   private final RateLimiters                          rateLimiters;
   private final SmsSender                             smsSender;
+  private final EmailSender                           emailSender;
   private final MessagesManager                       messagesManager;
   private final TurnTokenGenerator                    turnTokenGenerator;
   private final Map<String, Integer>                  testDevices;
@@ -89,6 +91,7 @@ public class AccountController {
                            AccountsManager accounts,
                            RateLimiters rateLimiters,
                            SmsSender smsSenderFactory,
+                           EmailSender emailSenderFactory,
                            MessagesManager messagesManager,
                            TurnTokenGenerator turnTokenGenerator,
                            Map<String, Integer> testDevices)
@@ -97,6 +100,7 @@ public class AccountController {
     this.accounts           = accounts;
     this.rateLimiters       = rateLimiters;
     this.smsSender          = smsSenderFactory;
+    this.emailSender        = emailSenderFactory;
     this.messagesManager    = messagesManager;
     this.testDevices        = testDevices;
     this.turnTokenGenerator = turnTokenGenerator;
@@ -116,6 +120,8 @@ public class AccountController {
     }
 
     switch (transport) {
+      case "email":
+        break;
       case "sms":
         rateLimiters.getSmsDestinationLimiter().validate(number);
         break;
@@ -135,6 +141,8 @@ public class AccountController {
 
     if (testDevices.containsKey(number)) {
       // noop
+    } else if (transport.equals("email")) {
+      emailSender.deliverEmailVerification(number /* <- email */, verificationCode.getVerificationCodeDisplay());
     } else if (transport.equals("sms")) {
       smsSender.deliverSmsVerification(number, client, verificationCode.getVerificationCodeDisplay());
     } else if (transport.equals("voice")) {

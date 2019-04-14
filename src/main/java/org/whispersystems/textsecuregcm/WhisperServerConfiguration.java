@@ -32,6 +32,7 @@ import org.whispersystems.textsecuregcm.configuration.TestDeviceConfiguration;
 import org.whispersystems.textsecuregcm.configuration.TurnConfiguration;
 import org.whispersystems.textsecuregcm.configuration.TwilioConfiguration;
 import org.whispersystems.websocket.configuration.WebSocketConfiguration;
+import org.whispersystems.textsecuregcm.configuration.EmailConfiguration;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -45,6 +46,9 @@ import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.db.DataSourceFactory;
 
 public class WhisperServerConfiguration extends Configuration {
+
+  @JsonProperty
+  private EmailConfiguration email;
 
   //@NotNull
   @Valid
@@ -142,6 +146,10 @@ public class WhisperServerConfiguration extends Configuration {
   //@NotNull
   @JsonProperty
   private ApnConfiguration apn;
+
+  public EmailConfiguration getEmailConfiguration() {
+    return email;
+  }
 
   public WebSocketConfiguration getWebSocketConfiguration() {
     return webSocket;
