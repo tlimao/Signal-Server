@@ -193,8 +193,11 @@ public class WhisperServerService extends Application<WhisperServerConfiguration
       apnFallbackManager  = new ApnFallbackManager(pushSchedulerClient, apnSender, accountsManager);
     }
 
-    TwilioSmsSender          twilioSmsSender     = new TwilioSmsSender(config.getTwilioConfiguration());
-    SmsSender                smsSender           = new SmsSender(twilioSmsSender);
+    SmsSender                smsSender           = null;
+    if (config.getTwilioConfiguration().isEnable()) {
+      TwilioSmsSender          twilioSmsSender     = new TwilioSmsSender(config.getTwilioConfiguration());
+      smsSender                                    = new SmsSender(twilioSmsSender);
+    }
     UrlSigner                urlSigner           = new UrlSigner(config.getAttachmentsConfiguration());
     PushSender               pushSender          = new PushSender(apnFallbackManager, gcmSender, apnSender, websocketSender, config.getPushConfiguration().getQueueSize());
     ReceiptSender            receiptSender       = new ReceiptSender(accountsManager, pushSender, federatedClientManager);

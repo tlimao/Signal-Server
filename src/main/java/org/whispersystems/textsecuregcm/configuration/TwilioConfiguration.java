@@ -24,24 +24,32 @@ import java.util.List;
 
 public class TwilioConfiguration {
 
-  @NotEmpty
+  @NotNull
+  @JsonProperty
+  private boolean enable;
+
+  //@NotEmpty
   @JsonProperty
   private String accountId;
 
-  @NotEmpty
+  //@NotEmpty
   @JsonProperty
   private String accountToken;
 
-  @NotNull
+  //@NotNull
   @JsonProperty
   private List<String> numbers;
 
-  @NotEmpty
+  //@NotEmpty
   @JsonProperty
   private String localDomain;
 
   @JsonProperty
   private String messagingServicesId;
+
+  public boolean isEnable() {
+    return enable;
+  }
 
   public String getAccountId() {
     return accountId;
