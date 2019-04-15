@@ -114,7 +114,10 @@ public class AccountController {
                                 @QueryParam("client")   Optional<String> client)
       throws IOException, RateLimitExceededException
   {
-    if (!Util.isValidNumber(number)) {
+    if (transport == "email" && !emailSender.validateEmailDomain(number)) {
+      logger.debug("Invalid email: " + number);
+      throw new WebApplicationException(Response.status(400).build());
+    } else if (!Util.isValidNumber(number)) {
       logger.debug("Invalid number: " + number);
       throw new WebApplicationException(Response.status(400).build());
     }
