@@ -37,6 +37,7 @@ import org.whispersystems.textsecuregcm.entities.RegistrationLock;
 import org.whispersystems.textsecuregcm.entities.RegistrationLockFailure;
 import org.whispersystems.textsecuregcm.limits.RateLimiters;
 import org.whispersystems.textsecuregcm.email.EmailSender;
+import org.whispersystems.textsecuregcm.email.EmailLdap;
 import org.whispersystems.textsecuregcm.sms.SmsSender;
 import org.whispersystems.textsecuregcm.sms.TwilioSmsSender;
 import org.whispersystems.textsecuregcm.storage.Account;
@@ -66,6 +67,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static com.codahale.metrics.MetricRegistry.name;
@@ -108,48 +110,60 @@ public class AccountController {
 
   @Timed
   @GET
-  @Path("/{transport}/code/{number}")
+  @Path("/{transport}/code/{identity}")
   public Response createAccount(@PathParam("transport") String transport,
-                                @PathParam("number")    String number,
+                                @PathParam("identity")  String identity,
                                 @QueryParam("client")   Optional<String> client)
       throws IOException, RateLimitExceededException
   {
-    if (!Util.isValidNumber(number)) {
-      logger.debug("Invalid number: " + number);
-      throw new WebApplicationException(Response.status(400).build());
+    String accountId = "";
+
+    if (transport.equals("email")) { // Email
+      accountId = "+550101187870";
+
+      if (!emailSender.validateEmailDomain(identity)) {
+        logger.debug("Invalid email or domain: " + identity);
+        throw new WebApplicationException(Response.status(400).build());
+      }
+
+    } else { // Number
+      accountId = identity;
+
+      if (!Util.isValidNumber(identity)) {
+        logger.debug("Invalid number: " + identity);
+        throw new WebApplicationException(Response.status(400).build());
+      }
+
+      switch (transport) {
+        case "sms":
+          rateLimiters.getSmsDestinationLimiter().validate(identity);
+          break;
+        case "voice":
+          rateLimiters.getVoiceDestinationLimiter().validate(identity);
+          rateLimiters.getVoiceDestinationDailyLimiter().validate(identity);
+          break;
+        default:
+          throw new WebApplicationException(Response.status(422).build());
+      }
     }
 
-    switch (transport) {
-      case "email":
-        break;
-      case "sms":
-        rateLimiters.getSmsDestinationLimiter().validate(number);
-        break;
-      case "voice":
-        rateLimiters.getVoiceDestinationLimiter().validate(number);
-        rateLimiters.getVoiceDestinationDailyLimiter().validate(number);
-        break;
-      default:
-        throw new WebApplicationException(Response.status(422).build());
-    }
-
-    VerificationCode       verificationCode       = generateVerificationCode(number);
+    VerificationCode       verificationCode       = generateVerificationCode(accountId);
     StoredVerificationCode storedVerificationCode = new StoredVerificationCode(verificationCode.getVerificationCode(),
                                                                                System.currentTimeMillis());
 
-    pendingAccounts.store(number, storedVerificationCode);
+    pendingAccounts.store(accountId, storedVerificationCode);
 
-    if (testDevices.containsKey(number)) {
+    if (testDevices.containsKey(accountId)) {
       // noop
     } else if (transport.equals("email")) {
-      emailSender.deliverEmailVerification(number /* <- email */, verificationCode.getVerificationCodeDisplay());
+      emailSender.deliverEmailVerification(identity, verificationCode.getVerificationCodeDisplay());
     } else if (transport.equals("sms")) {
-      smsSender.deliverSmsVerification(number, client, verificationCode.getVerificationCodeDisplay());
+      smsSender.deliverSmsVerification(identity, client, verificationCode.getVerificationCodeDisplay());
     } else if (transport.equals("voice")) {
-      smsSender.deliverVoxVerification(number, verificationCode.getVerificationCodeSpeech());
+      smsSender.deliverVoxVerification(identity, verificationCode.getVerificationCodeSpeech());
     }
 
-    return Response.ok().build();
+    return Response.ok(accountId).build();
   }
 
   @Timed
