@@ -37,7 +37,6 @@ import org.whispersystems.textsecuregcm.entities.RegistrationLock;
 import org.whispersystems.textsecuregcm.entities.RegistrationLockFailure;
 import org.whispersystems.textsecuregcm.limits.RateLimiters;
 import org.whispersystems.textsecuregcm.email.EmailSender;
-import org.whispersystems.textsecuregcm.email.EmailLdap;
 import org.whispersystems.textsecuregcm.sms.SmsSender;
 import org.whispersystems.textsecuregcm.sms.TwilioSmsSender;
 import org.whispersystems.textsecuregcm.storage.Account;
@@ -119,7 +118,7 @@ public class AccountController {
     String accountId = "";
 
     if (transport.equals("email")) { // Email
-      accountId = "+550101187870";
+      accountId = "+551111111111"; //generateAccountId();
 
       if (!emailSender.validateEmailDomain(identity)) {
         logger.debug("Invalid email or domain: " + identity);

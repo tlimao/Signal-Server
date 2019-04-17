@@ -20,8 +20,6 @@ package org.whispersystems.textsecuregcm.auth;
 import org.whispersystems.textsecuregcm.util.Base64;
 import org.whispersystems.textsecuregcm.util.Util;
 
-import org.whispersystems.textsecuregcm.email.EmailLdap;
-
 import java.io.IOException;
 
 public class AuthorizationHeader {
@@ -44,7 +42,6 @@ public class AuthorizationHeader {
                                      numberAndId.length > 1 ? Long.parseLong(numberAndId[1]) : 1,
                                      password);
     } catch (NumberFormatException nfe) {
-      System.out.println(nfe);
       throw new InvalidAuthorizationHeaderException(nfe);
     }
   }
