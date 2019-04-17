@@ -20,6 +20,8 @@ package org.whispersystems.textsecuregcm.auth;
 import org.whispersystems.textsecuregcm.util.Base64;
 import org.whispersystems.textsecuregcm.util.Util;
 
+import org.whispersystems.textsecuregcm.email.EmailLdap;
+
 import java.io.IOException;
 
 public class AuthorizationHeader {
@@ -37,10 +39,12 @@ public class AuthorizationHeader {
   public static AuthorizationHeader fromUserAndPassword(String user, String password) throws InvalidAuthorizationHeaderException {
     try {
       String[] numberAndId = user.split("\\.");
+
       return new AuthorizationHeader(numberAndId[0],
                                      numberAndId.length > 1 ? Long.parseLong(numberAndId[1]) : 1,
                                      password);
     } catch (NumberFormatException nfe) {
+      System.out.println(nfe);
       throw new InvalidAuthorizationHeaderException(nfe);
     }
   }
@@ -62,7 +66,7 @@ public class AuthorizationHeader {
       }
 
       String concatenatedValues = new String(Base64.decode(headerParts[1]));
-
+     
       if (Util.isEmpty(concatenatedValues)) {
         throw new InvalidAuthorizationHeaderException("Bad decoded value: " + concatenatedValues);
       }
