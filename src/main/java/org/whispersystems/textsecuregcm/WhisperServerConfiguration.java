@@ -29,6 +29,7 @@ import org.whispersystems.textsecuregcm.configuration.RedPhoneConfiguration;
 import org.whispersystems.textsecuregcm.configuration.RedisConfiguration;
 import org.whispersystems.textsecuregcm.configuration.AttachmentsConfiguration;
 import org.whispersystems.textsecuregcm.configuration.TestDeviceConfiguration;
+import org.whispersystems.textsecuregcm.configuration.TestAccountConfiguration;
 import org.whispersystems.textsecuregcm.configuration.TurnConfiguration;
 import org.whispersystems.textsecuregcm.configuration.TwilioConfiguration;
 import org.whispersystems.websocket.configuration.WebSocketConfiguration;
@@ -99,6 +100,11 @@ public class WhisperServerConfiguration extends Configuration {
   @NotNull
   @JsonProperty
   private List<TestDeviceConfiguration> testDevices = new LinkedList<>();
+
+  @Valid
+  @NotNull
+  @JsonProperty
+  private List<TestAccountConfiguration> testAccounts = new LinkedList<>();
 
   @Valid
   @NotNull
@@ -229,6 +235,17 @@ public class WhisperServerConfiguration extends Configuration {
     for (TestDeviceConfiguration testDeviceConfiguration : testDevices) {
       results.put(testDeviceConfiguration.getNumber(),
                   testDeviceConfiguration.getCode());
+    }
+
+    return results;
+  }
+
+  public Map<String, Integer> getTestAccounts() {
+    Map<String, Integer> results = new HashMap<>();
+
+    for (TestAccountConfiguration testAccountConfiguration : testAccounts) {
+      results.put(testAccountConfiguration.getEmail(),
+                  testAccountConfiguration.getCode());
     }
 
     return results;

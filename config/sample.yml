@@ -12,6 +12,11 @@ email: # Email configuration
     - # ...
     - # Nth domain
 
+testAccounts:
+  - email:
+    code:
+  # ...
+
 twilio: # Twilio gateway configuration
   enable: # true: Twilio Enable / false: Twilio Disable
   accountId: 

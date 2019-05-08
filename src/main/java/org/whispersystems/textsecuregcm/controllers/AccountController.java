@@ -87,6 +87,7 @@ public class AccountController {
   private final MessagesManager                       messagesManager;
   private final TurnTokenGenerator                    turnTokenGenerator;
   private final Map<String, Integer>                  testDevices;
+  private final Map<String, Integer>                  testAccounts;
 
   public AccountController(PendingAccountsManager pendingAccounts,
                            AccountsManager accounts,
@@ -95,7 +96,8 @@ public class AccountController {
                            EmailSender emailSenderFactory,
                            MessagesManager messagesManager,
                            TurnTokenGenerator turnTokenGenerator,
-                           Map<String, Integer> testDevices)
+                           Map<String, Integer> testDevices,
+                           Map<String, Integer> testAccounts)
   {
     this.pendingAccounts    = pendingAccounts;
     this.accounts           = accounts;
@@ -104,6 +106,7 @@ public class AccountController {
     this.emailSender        = emailSenderFactory;
     this.messagesManager    = messagesManager;
     this.testDevices        = testDevices;
+    this.testAccounts       = testAccounts;
     this.turnTokenGenerator = turnTokenGenerator;
   }
 
@@ -118,7 +121,7 @@ public class AccountController {
     String accountId = "";
 
     if (transport.equals("email")) { // Email
-      accountId = "+551111111111"; //generateAccountId();
+      accountId = generateId();
 
       if (!emailSender.validateEmailDomain(identity)) {
         logger.debug("Invalid email or domain: " + identity);
@@ -146,14 +149,24 @@ public class AccountController {
       }
     }
 
-    VerificationCode       verificationCode       = generateVerificationCode(accountId);
-    StoredVerificationCode storedVerificationCode = new StoredVerificationCode(verificationCode.getVerificationCode(),
-                                                                               System.currentTimeMillis());
+    VerificationCode       verificationCode       = null;
+    StoredVerificationCode storedVerificationCode = null;
+
+    if (testAccounts.containsKey(identity)) {
+      verificationCode       = generateVerificationCode(identity);
+      storedVerificationCode = new StoredVerificationCode(verificationCode.getVerificationCode(),
+                                                                                 System.currentTimeMillis());
+    } else {
+      verificationCode       = generateVerificationCode(accountId);
+      storedVerificationCode = new StoredVerificationCode(verificationCode.getVerificationCode(),
+                                                                                 System.currentTimeMillis());
+    }
 
     pendingAccounts.store(accountId, storedVerificationCode);
 
-    if (testDevices.containsKey(accountId)) {
+    if (testDevices.containsKey(accountId) || testAccounts.containsKey(identity)) {
       // noop
+      System.out.println("Test Account " + identity);
     } else if (transport.equals("email")) {
       emailSender.deliverEmailVerification(identity, verificationCode.getVerificationCodeDisplay());
     } else if (transport.equals("sms")) {
@@ -365,13 +378,23 @@ public class AccountController {
     pendingAccounts.remove(number);
   }
 
-  @VisibleForTesting protected VerificationCode generateVerificationCode(String number) {
-    if (testDevices.containsKey(number)) {
-      return new VerificationCode(testDevices.get(number));
+  @VisibleForTesting protected VerificationCode generateVerificationCode(String identity) {
+    if (testDevices.containsKey(identity)) {
+      return new VerificationCode(testDevices.get(identity));
+    } else if (testAccounts.containsKey(identity)) {
+      return new VerificationCode(testAccounts.get(identity));
     }
 
     SecureRandom random = new SecureRandom();
     int randomInt       = 100000 + random.nextInt(900000);
+    
     return new VerificationCode(randomInt);
+  }
+
+  private String generateId() {
+    SecureRandom random = new SecureRandom();
+    int randomInt       = 1000000000 + random.nextInt(900000);
+
+    return "+55" + Integer.toString(randomInt);
   }
 }
