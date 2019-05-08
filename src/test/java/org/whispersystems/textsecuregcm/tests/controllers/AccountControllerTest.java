@@ -70,6 +70,7 @@ public class AccountControllerTest {
                                                                                                emailSender,
                                                                                                storedMessages,
                                                                                                turnTokenGenerator,
+                                                                                               new HashMap<>(),
                                                                                                new HashMap<>()))
                                                             .build();
 

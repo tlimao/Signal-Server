@@ -35,6 +35,9 @@ public class EmailConfiguration {
     @JsonProperty
     private List<String> allowedDomains;
 
+    @JsonProperty
+    private List<String> testEmails;
+
     public boolean isEnable() {
     	return enable;
     }

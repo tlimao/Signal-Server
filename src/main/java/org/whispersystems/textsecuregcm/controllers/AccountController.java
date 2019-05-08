@@ -66,6 +66,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static com.codahale.metrics.MetricRegistry.name;
@@ -86,6 +87,7 @@ public class AccountController {
   private final MessagesManager                       messagesManager;
   private final TurnTokenGenerator                    turnTokenGenerator;
   private final Map<String, Integer>                  testDevices;
+  private final Map<String, Integer>                  testAccounts;
 
   public AccountController(PendingAccountsManager pendingAccounts,
                            AccountsManager accounts,
@@ -94,7 +96,8 @@ public class AccountController {
                            EmailSender emailSenderFactory,
                            MessagesManager messagesManager,
                            TurnTokenGenerator turnTokenGenerator,
-                           Map<String, Integer> testDevices)
+                           Map<String, Integer> testDevices,
+                           Map<String, Integer> testAccounts)
   {
     this.pendingAccounts    = pendingAccounts;
     this.accounts           = accounts;
@@ -103,53 +106,76 @@ public class AccountController {
     this.emailSender        = emailSenderFactory;
     this.messagesManager    = messagesManager;
     this.testDevices        = testDevices;
+    this.testAccounts       = testAccounts;
     this.turnTokenGenerator = turnTokenGenerator;
   }
 
   @Timed
   @GET
-  @Path("/{transport}/code/{number}")
+  @Path("/{transport}/code/{identity}")
   public Response createAccount(@PathParam("transport") String transport,
-                                @PathParam("number")    String number,
+                                @PathParam("identity")  String identity,
                                 @QueryParam("client")   Optional<String> client)
       throws IOException, RateLimitExceededException
   {
-    if (!Util.isValidNumber(number)) {
-      logger.debug("Invalid number: " + number);
-      throw new WebApplicationException(Response.status(400).build());
+    String accountId = "";
+
+    if (transport.equals("email")) { // Email
+      accountId = generateId();
+
+      if (!emailSender.validateEmailDomain(identity)) {
+        logger.debug("Invalid email or domain: " + identity);
+        throw new WebApplicationException(Response.status(400).build());
+      }
+
+    } else { // Number
+      accountId = identity;
+
+      if (!Util.isValidNumber(identity)) {
+        logger.debug("Invalid number: " + identity);
+        throw new WebApplicationException(Response.status(400).build());
+      }
+
+      switch (transport) {
+        case "sms":
+          rateLimiters.getSmsDestinationLimiter().validate(identity);
+          break;
+        case "voice":
+          rateLimiters.getVoiceDestinationLimiter().validate(identity);
+          rateLimiters.getVoiceDestinationDailyLimiter().validate(identity);
+          break;
+        default:
+          throw new WebApplicationException(Response.status(422).build());
+      }
     }
 
-    switch (transport) {
-      case "email":
-        break;
-      case "sms":
-        rateLimiters.getSmsDestinationLimiter().validate(number);
-        break;
-      case "voice":
-        rateLimiters.getVoiceDestinationLimiter().validate(number);
-        rateLimiters.getVoiceDestinationDailyLimiter().validate(number);
-        break;
-      default:
-        throw new WebApplicationException(Response.status(422).build());
+    VerificationCode       verificationCode       = null;
+    StoredVerificationCode storedVerificationCode = null;
+
+    if (testAccounts.containsKey(identity)) {
+      verificationCode       = generateVerificationCode(identity);
+      storedVerificationCode = new StoredVerificationCode(verificationCode.getVerificationCode(),
+                                                                                 System.currentTimeMillis());
+    } else {
+      verificationCode       = generateVerificationCode(accountId);
+      storedVerificationCode = new StoredVerificationCode(verificationCode.getVerificationCode(),
+                                                                                 System.currentTimeMillis());
     }
 
-    VerificationCode       verificationCode       = generateVerificationCode(number);
-    StoredVerificationCode storedVerificationCode = new StoredVerificationCode(verificationCode.getVerificationCode(),
-                                                                               System.currentTimeMillis());
+    pendingAccounts.store(accountId, storedVerificationCode);
 
-    pendingAccounts.store(number, storedVerificationCode);
-
-    if (testDevices.containsKey(number)) {
+    if (testDevices.containsKey(accountId) || testAccounts.containsKey(identity)) {
       // noop
+      System.out.println("Test Account " + identity);
     } else if (transport.equals("email")) {
-      emailSender.deliverEmailVerification(number /* <- email */, verificationCode.getVerificationCodeDisplay());
+      emailSender.deliverEmailVerification(identity, verificationCode.getVerificationCodeDisplay());
     } else if (transport.equals("sms")) {
-      smsSender.deliverSmsVerification(number, client, verificationCode.getVerificationCodeDisplay());
+      smsSender.deliverSmsVerification(identity, client, verificationCode.getVerificationCodeDisplay());
     } else if (transport.equals("voice")) {
-      smsSender.deliverVoxVerification(number, verificationCode.getVerificationCodeSpeech());
+      smsSender.deliverVoxVerification(identity, verificationCode.getVerificationCodeSpeech());
     }
 
-    return Response.ok().build();
+    return Response.ok(accountId).build();
   }
 
   @Timed
@@ -352,13 +378,23 @@ public class AccountController {
     pendingAccounts.remove(number);
   }
 
-  @VisibleForTesting protected VerificationCode generateVerificationCode(String number) {
-    if (testDevices.containsKey(number)) {
-      return new VerificationCode(testDevices.get(number));
+  @VisibleForTesting protected VerificationCode generateVerificationCode(String identity) {
+    if (testDevices.containsKey(identity)) {
+      return new VerificationCode(testDevices.get(identity));
+    } else if (testAccounts.containsKey(identity)) {
+      return new VerificationCode(testAccounts.get(identity));
     }
 
     SecureRandom random = new SecureRandom();
     int randomInt       = 100000 + random.nextInt(900000);
+    
     return new VerificationCode(randomInt);
+  }
+
+  private String generateId() {
+    SecureRandom random = new SecureRandom();
+    int randomInt       = 1000000000 + random.nextInt(900000);
+
+    return "+55" + Integer.toString(randomInt);
   }
 }

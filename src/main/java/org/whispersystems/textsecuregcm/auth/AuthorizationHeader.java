@@ -37,6 +37,7 @@ public class AuthorizationHeader {
   public static AuthorizationHeader fromUserAndPassword(String user, String password) throws InvalidAuthorizationHeaderException {
     try {
       String[] numberAndId = user.split("\\.");
+
       return new AuthorizationHeader(numberAndId[0],
                                      numberAndId.length > 1 ? Long.parseLong(numberAndId[1]) : 1,
                                      password);
@@ -62,7 +63,7 @@ public class AuthorizationHeader {
       }
 
       String concatenatedValues = new String(Base64.decode(headerParts[1]));
-
+     
       if (Util.isEmpty(concatenatedValues)) {
         throw new InvalidAuthorizationHeaderException("Bad decoded value: " + concatenatedValues);
       }
