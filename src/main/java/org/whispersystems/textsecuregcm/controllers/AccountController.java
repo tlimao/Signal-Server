@@ -149,33 +149,27 @@ public class AccountController {
       }
     }
 
-    VerificationCode       verificationCode       = null;
-    StoredVerificationCode storedVerificationCode = null;
+    VerificationCode verificationCode = (testAccounts.containsKey(identity)) ? generateVerificationCode(identity) : generateVerificationCode(accountId);
 
-    if (testAccounts.containsKey(identity)) {
-      verificationCode       = generateVerificationCode(identity);
-      storedVerificationCode = new StoredVerificationCode(verificationCode.getVerificationCode(),
-                                                                                 System.currentTimeMillis());
-    } else {
-      verificationCode       = generateVerificationCode(accountId);
-      storedVerificationCode = new StoredVerificationCode(verificationCode.getVerificationCode(),
-                                                                                 System.currentTimeMillis());
-    }
+    StoredVerificationCode storedVerificationCode = new StoredVerificationCode(verificationCode.getVerificationCode(), System.currentTimeMillis());
 
     pendingAccounts.store(accountId, storedVerificationCode);
 
     if (testDevices.containsKey(accountId) || testAccounts.containsKey(identity)) {
       // noop
       System.out.println("Test Account " + identity);
-    } else if (transport.equals("email")) {
-      emailSender.deliverEmailVerification(identity, verificationCode.getVerificationCodeDisplay());
-    } else if (transport.equals("sms")) {
-      smsSender.deliverSmsVerification(identity, client, verificationCode.getVerificationCodeDisplay());
-    } else if (transport.equals("voice")) {
-      smsSender.deliverVoxVerification(identity, verificationCode.getVerificationCodeSpeech());
+    
+      return Response.ok(accountId).build();
+    } else {
+      if (transport.equals("email")) {
+        emailSender.deliverEmailVerification(identity, verificationCode.getVerificationCodeDisplay());
+      } else if (transport.equals("sms")) {
+        smsSender.deliverSmsVerification(identity, client, verificationCode.getVerificationCodeDisplay());
+      } else if (transport.equals("voice")) {
+        smsSender.deliverVoxVerification(identity, verificationCode.getVerificationCodeSpeech());
+      }
+      return Response.ok().build();
     }
-
-    return Response.ok(accountId).build();
   }
 
   @Timed
