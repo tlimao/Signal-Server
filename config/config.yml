@@ -1,0 +1,123 @@
+email: # Email configuration
+  enable: true # true: Email Verification Enable / false: Email Verification Disable
+  smtpUser: "suporte"
+  smtpPass: "Sup0rT3"
+  smtpHost: "192.168.1.180"
+  smtpPort: "465"
+  email: "suporte@eb.mil.br" # Contact email e.g.: contact@yourdomain.com
+  allDomainsAllowed: false # true: allow any domain / false: allow specific domains
+  allowedDomains:
+    - "eb.mil.br"
+    - # Second domain
+    - # ...
+    - # Nth domain
+
+testAccounts:
+  - email: "thiagolima.oliveira@eb.mil.br"
+    code: 111111
+  - email: "althoff@eb.mil.br"
+    code: 111111
+  - email: "wolski.eduardo@eb.mil.br"
+    code: 111111
+  # ...
+
+testDevices:
+  - number: "+5561993187344"
+    code: 111111
+
+twilio: # Twilio gateway configuration
+  enable: false # true: Twilio Enable / false: Twilio Disable
+  accountId: 
+  accountToken: 
+  numbers: # Numbers allocated in Twilio
+    - # First number
+    - # Second number
+    - # Third number
+    - # ...
+    - # Nth number
+  messagingServicesId: 
+  localDomain: # Domain Twilio can connect back to for calls. Should be domain of your service.
+
+push:
+  queueSize: 200 # Size of push pending queue
+
+#redphone:
+#  authKey: # Deprecated
+
+turn: # TURN server configuration
+  secret: signal # TURN server secret
+  uris: ["turn:10.166.66.47:3478", "stun:10.166.66.47:3478", "turn:10.166.66.47:5349", "stun:10.166.66.47:5349"]
+  #  - stun:192.168.1.120:3478
+  #  - stun:192.168.1.120:443
+  #  - turn:192.168.1.120:443?transport=udp
+  #  - turn:192.168.1.120:3478?transport=udp
+
+server:
+  applicationConnectors:
+    - type: https
+      port: 8080
+      keyStorePath: certificates/SignalServer.keystore
+      keyStorePassword: example
+      validateCerts: false
+  adminConnectors:
+    - type: https
+      port: 8081
+      keyStorePath: certificates/SignalServer.keystore
+      keyStorePassword: example
+      validateCerts: false
+
+cache: # Redis server configuration for cache cluster
+  url: "redis://localhost:6379"
+  replicaUrls: 
+    - "redis://localhost:6379"
+
+pushScheduler:
+  url: "redis://localhost:6379"
+  replicaUrls:
+    - "redis://localhost:6379"
+
+directory: # Redis server configuration for directory cluster
+  url: "redis://localhost:6379"
+  replicaUrls: 
+    - "redis://localhost:6379"
+
+messageCache: # Redis server configuration for message store cache
+  redis:
+    url: "redis://localhost:6379"
+    replicaUrls: 
+      - "redis://localhost:6379"
+
+messageStore: # Postgresql database configuration for message store
+  driverClass: org.postgresql.Driver
+  user: "postgres"
+  password: "postgres"
+  url: "jdbc:postgresql://localhost:5432/messagedb"
+
+attachments: # AWS S3 configuration
+#  url: "https://10.166.66.47:9000"
+  accessKey: 8HUETAH3PHKVPXACVKC7
+  accessSecret: Rn9+mwJ4QYSDflafjZhJuGheLcxYE+UrbzGYAg3b
+  bucket: "attachments"
+
+profiles: # AWS S3 configuration
+#  url: "https://10.166.66.47:9000"
+  accessKey: 8HUETAH3PHKVPXACVKC7
+  accessSecret: Rn9+mwJ4QYSDflafjZhJuGheLcxYE+UrbzGYAg3b
+  bucket: "profiles"
+  region: "us-east-1"
+
+database: # Postgresql database configuration
+  driverClass: org.postgresql.Driver
+  user: "postgres"
+  password: "postgres"
+  url: "jdbc:postgresql://localhost:5432/accountdb"
+
+apn: # Apple Push Notifications configuration
+  enable: false
+  bundleId:
+  pushCertificate:
+  pushKey:
+
+gcm: # GCM Configuration
+  senderId: 2131424543
+  apiKey: lQOsBFvCHqsBCACY/TQOlEjXzamWYCC4Oy+NueFiO4/FV7qxvLrPBOakJxvOGdfCw6ujvUfUr$

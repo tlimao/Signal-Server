@@ -17,6 +17,11 @@ testAccounts:
     code:
   # ...
 
+testDevices:
+  - number:
+    code:
+  # ...
+
 twilio: # Twilio gateway configuration
   enable: # true: Twilio Enable / false: Twilio Disable
   accountId: 
